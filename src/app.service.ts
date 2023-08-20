@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { Messages } from './entities/messages.entity';
 import { CreateUserDto } from './dtos/user.dtos';
@@ -14,35 +19,83 @@ export class AppService {
     this.messages = [];
   }
 
+  getHealth(): string {
+    return "I'm okay!";
+  }
+
   signUp(body: CreateUserDto) {
-    const user = new User(body.name, body.avatar);
-    return this.users.push(user);
+    for (let i = 0; i < this.users.length; i++) {
+      const user = this.users[i];
+      if (user._username === body.username) {
+        throw new ConflictException('User already exists');
+      }
+    }
+    const usuario = new User(body.username, body.avatar);
+    return this.users.push(usuario);
   }
 
   postTweets(body: CreateMessagesDto) {
-    if (this.users.includes(body.user)) {
-      const message = new Messages(body.user, body.message);
-      return this.messages.push(message);
-    } else {
+    let h = 0;
+    for (let i = 0; i < this.users.length; i++) {
+      const user = this.users[i];
+      if (user._username === body.username) {
+        const message = new Messages(user, body.tweet);
+        this.messages.push(message);
+        h = 1;
+      }
+    }
+    if (h === 0) {
       throw new UnauthorizedException('Unauthorized User');
+    } else {
+      return this.messages;
     }
   }
 
-  getTweets() {
-    const tweets = [];
-    if (this.messages.length === 0) {
-      return this.messages;
-    } else if (this.messages.length > 15) {
-      for (let i = 1; i < 15; i++) {
+  getTweets(page: string) {
+    const number = Number(page);
+    if (number < 1) {
+      throw new BadRequestException('BAD_REQUEST');
+    } else if (number >= 1) {
+      const tweets = [];
+      const limit = 15 * number;
+      for (let i = 1; i < limit || i < this.messages.length + 1; i++) {
         const tweet = this.messages[this.messages.length - i];
-        tweets.push(tweet);
+        tweets.push({
+          username: tweet._user._username,
+          avatar: tweet._user._avatar,
+          tweet: tweet._message,
+        });
       }
       return tweets;
-    } else {
-      return this.messages;
+    }
+    const tweets = [];
+    if (this.messages.length === 0) {
+      return tweets;
+    } else if (this.messages.length > 15) {
+      for (let i = 1; i < 16; i++) {
+        const tweet = this.messages[this.messages.length - i];
+        tweets.push({
+          username: tweet._user._username,
+          avatar: tweet._user._avatar,
+          tweet: tweet._message,
+        });
+      }
+      return tweets;
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getUserTweets(username: string) {}
+  getUserTweets(username: string) {
+    const tweets = [];
+    for (let i = 0; i < this.messages.length; i++) {
+      const tweet = this.messages[i];
+      if (tweet._user._username === username) {
+        tweets.push({
+          username: tweet._user._username,
+          avatar: tweet._user._avatar,
+          tweet: tweet._message,
+        });
+      }
+    }
+    return tweets;
+  }
 }

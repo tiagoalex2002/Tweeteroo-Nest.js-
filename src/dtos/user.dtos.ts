@@ -3,14 +3,14 @@ import { IsNotEmpty, IsString, IsUrl } from 'class-validator';
 export class CreateUserDto {
   @IsString()
   @IsNotEmpty({
-    message: 'All filed are required!',
+    message: 'All fields are required!',
   })
-  name: string;
+  username: string;
 
   @IsString()
-  @IsUrl()
   @IsNotEmpty({
-    message: 'All filed are required!',
+    message: 'All fields are required!',
   })
+  @IsUrl()
   avatar: string;
 }

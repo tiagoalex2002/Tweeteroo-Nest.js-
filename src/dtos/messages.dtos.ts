@@ -1,15 +1,14 @@
 import { IsString, IsNotEmpty } from 'class-validator';
-import { User } from 'src/entities/user.entity';
 
 export class CreateMessagesDto {
   @IsString()
   @IsNotEmpty({
-    message: 'All filed are required!',
+    message: 'All fields are required!',
   })
-  message: string;
+  tweet: string;
 
   @IsNotEmpty({
-    message: 'All filed are required!',
+    message: 'All fields are required!',
   })
-  user: User;
+  username: string;
 }
