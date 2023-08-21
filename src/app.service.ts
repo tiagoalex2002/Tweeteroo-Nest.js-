@@ -57,8 +57,17 @@ export class AppService {
       throw new BadRequestException('BAD_REQUEST');
     } else if (number >= 1) {
       const tweets = [];
+      if (this.messages.length === 0) {
+        return tweets;
+      }
+      let start;
+      if (number === 1) {
+        start = 1;
+      } else {
+        start = 15 * (number - 1) + 1;
+      }
       const limit = 15 * number;
-      for (let i = 1; i < limit || i < this.messages.length + 1; i++) {
+      for (let i = start; i < limit && i < this.messages.length + 1; i++) {
         const tweet = this.messages[this.messages.length - i];
         tweets.push({
           username: tweet._user._username,
@@ -81,6 +90,8 @@ export class AppService {
         });
       }
       return tweets;
+    } else {
+      return this.messages;
     }
   }
 
